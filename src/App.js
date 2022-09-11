@@ -3,32 +3,21 @@ import { data } from "./QuizData";
 
 const App = () => {
   const [showStatus, setShowStatus] = useState(false);
-  const [bottomData, setBottomData] = useState([]);
   const questions = data.questions ? data.questions : "";
   const title = data.title;
   const url = data?.url;
-  const obj = {};
-  const arrObj = [];
+  const arrObj = React.useRef(
+    Object.fromEntries(questions.map(({ id }) => [id, {}]))
+  );
+  console.log(arrObj);
   const handleDraftAnswer = (question, answer) => {
-    if (answer.includes("true")) {
-      Object.keys(question).forEach((key, index) => {
-        obj["text"] = question["text"];
-        obj["id"] = question["id"];
-        obj["status"] = "true";
-      });
-    } else {
-      Object.keys(question).forEach((key, index) => {
-        obj["text"] = question["text"];
-
-        obj["id"] = question["id"];
-        obj["status"] = "false";
-      });
-    }
-
-    arrObj.push({ ...obj });
-    setBottomData((oldArray) => [...oldArray, obj]);
+    arrObj.current[question.id] = {
+      ...answer,
+      feedback: answer.is_true
+        ? question.feedback_true
+        : question.feedback_false,
+    };
   };
-  console.log(url);
   return (
     <div className="container mx-auto px-4  d-flex flex-col">
       {title && (
@@ -54,7 +43,7 @@ const App = () => {
                       <p
                         className="cursor-pointer hover:text-white"
                         key={answer?.id}
-                        onClick={() => handleDraftAnswer(question, answer.text)}
+                        onClick={() => handleDraftAnswer(question, answer)}
                       >
                         {answer.text}
                       </p>
@@ -78,11 +67,9 @@ const App = () => {
       {showStatus && (
         <>
           <div className="flex flex-col justify-center gap-6 mt-10 bg-slate-400 p-6 rounded-md text-xl font-semibold">
-            {bottomData.map((status) => (
-              <div key={status.id} className=" flex">
-                <p>{status.text}</p>
-                <span>-</span>
-                <p>{status.status}</p>
+            {Object.entries(arrObj.current).map(([id, { feedback }]) => (
+              <div key={id} className=" flex">
+                <p>{feedback}</p>
               </div>
             ))}
           </div>
